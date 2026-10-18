@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>问卷星 · 数据统计</title>
+<style>
+html { font-size: calc(100vw / 100); }
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:#f2f3f5; color:#333;
+       -webkit-font-smoothing:antialiased; }
+.top { height:3.5rem; background:#fff; border-bottom:1px solid #e6e8eb; display:flex; align-items:center; padding:0 1.5rem; gap:2rem; }
+.logo { font-size:1.15rem; font-weight:700; color:#2f6fed; letter-spacing:.02em; }
+.logo span { color:#ff8a00; }
+.top nav { display:flex; gap:1.6rem; font-size:.82rem; color:#4a4f57; }
+.top nav b { color:#2f6fed; font-weight:400; }
+.top .right { margin-left:auto; display:flex; align-items:center; gap:1.1rem; font-size:.78rem; color:#8a9099; }
+.avatar { width:1.5rem; height:1.5rem; border-radius:50%; background:#dfe4ec; color:#7a8290;
+          display:flex; align-items:center; justify-content:center; font-size:.62rem; }
+.tabs { background:#fff; height:2.5rem; display:flex; align-items:center; gap:2.2rem; padding:0 1.5rem;
+        border-bottom:1px solid #e6e8eb; font-size:.82rem; color:#5a616b; }
+.tabs .on { color:#2f6fed; position:relative; }
+.tabs .on::after { content:""; position:absolute; left:0; right:0; bottom:-.62rem; height:2px; background:#2f6fed; }
+
+main { padding:1.1rem 1.5rem; min-height:calc(100vh - 6rem); display:flex; flex-direction:column; }
+.crumb { font-size:.72rem; color:#9aa1ab; margin-bottom:.7rem; }
+.crumb em { font-style:normal; color:#5a616b; }
+.titlerow { display:flex; align-items:baseline; gap:.7rem; margin-bottom:.9rem; }
+.titlerow h1 { font-size:1.15rem; font-weight:600; color:#1f242b; }
+.pill { font-size:.68rem; color:#0f9960; background:#e8f6ef; border:1px solid #bfe6d3;
+        border-radius:.2rem; padding:.1rem .38rem; }
+.titlerow .meta { margin-left:auto; font-size:.72rem; color:#9aa1ab; }
+
+.stats { display:flex; gap:.8rem; margin-bottom:.9rem; }
+.stat { flex:1; background:#fff; border:1px solid #e6e8eb; border-radius:.35rem; padding:.7rem .9rem; }
+.stat .k { font-size:.7rem; color:#9aa1ab; }
+.stat .v { font-size:1.5rem; font-weight:600; margin-top:.1rem; line-height:1.15; }
+.stat.bad .v { color:#e1251b; }
+.stat.good .v { color:#0f9960; }
+
+.body { display:flex; gap:.8rem; align-items:stretch; flex:1; }
+.card { background:#fff; border:1px solid #e6e8eb; border-radius:.35rem; }
+.tbl { flex:1.62; overflow:hidden; }
+.tbl .hd { display:flex; align-items:center; padding:.65rem .9rem; border-bottom:1px solid #eef0f3; }
+.tbl .hd .t { font-size:.82rem; font-weight:600; color:#1f242b; }
+.tbl .hd .f { margin-left:auto; display:flex; gap:.5rem; font-size:.7rem; }
+.f { align-items:center; }
+.sel { border:1px solid #d8dce2; border-radius:.2rem; padding:.12rem .4rem; color:#5a616b; }
+table { width:100%; border-collapse:collapse; font-size:.75rem; }
+th { text-align:left; font-weight:400; color:#9aa1ab; background:#fafbfc; padding:.5rem .9rem;
+     border-bottom:1px solid #eef0f3; font-size:.7rem; }
+td { padding:.66rem .9rem; border-bottom:1px solid #f3f5f7; color:#3d434b; }
+tr.bad td { background:#fffafa; }
+.idn { color:#9aa1ab; }
+.tagbad { font-size:.64rem; color:#e1251b; background:#fdeceb; border:1px solid #f7cfcc;
+          border-radius:.16rem; padding:.06rem .3rem; }
+.taggood { font-size:.64rem; color:#0f9960; background:#eaf7f1; border:1px solid #c9e9db;
+           border-radius:.16rem; padding:.06rem .3rem; }
+.duo { color:#e1251b; }
+
+.chart { flex:1; padding:.85rem .95rem; display:flex; flex-direction:column; }
+.pager { display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem; font-size:.7rem; color:#8a9099; border-top:1px solid #f3f5f7; }
+.pager .sp { margin-left:auto; }
+.pg { border:1px solid #d8dce2; border-radius:.18rem; padding:.06rem .38rem; color:#5a616b; }
+.pg.on { background:#2f6fed; border-color:#2f6fed; color:#fff; }
+.chart h3 { font-size:.82rem; font-weight:600; color:#1f242b; margin-bottom:.35rem; }
+.chart .q { font-size:.72rem; color:#8a9099; line-height:1.5; margin-bottom:.75rem; }
+.bar { margin-bottom:.7rem; }
+.bar .lb { display:flex; font-size:.74rem; color:#3d434b; margin-bottom:.22rem; }
+.bar .lb b { margin-left:auto; font-weight:600; }
+.track { height:.5rem; background:#f0f2f5; border-radius:.25rem; overflow:hidden; }
+.fill { height:100%; border-radius:.25rem; }
+.f1 { width:78%; background:#2f6fed; }
+.f2 { width:22%; background:#a9bfe8; }
+.note { margin-top:1rem; font-size:.68rem; color:#e1251b; background:#fdf2f1; border:1px solid #f8d8d5;
+        border-radius:.25rem; padding:.4rem .55rem; line-height:1.5; }
+.mini { width:100%; border-collapse:collapse; font-size:.72rem; margin-top:.35rem; }
+.mini th { background:none; border-bottom:1px solid #eef0f3; padding:.32rem .2rem; }
+.mini td { padding:.34rem .2rem; border-bottom:1px solid #f5f7f9; }
+.mini tr.sum td { color:#9aa1ab; border-bottom:none; }
+.foot { margin-top:auto; padding-top:.8rem; font-size:.68rem; color:#9aa1ab; display:flex; }
+.foot span:last-child { margin-left:auto; }
+</style></head><body>
+
+<div class="top">
+  <div class="logo">问卷<span>星</span></div>
+  <nav><b>我的问卷</b><span>模板库</span><span>案例库</span><span>帮助中心</span></nav>
+  <div class="right"><span>搜索问卷</span><span>消息</span><span class="avatar">张</span><span>张同学</span></div>
+</div>
+
+<div class="tabs">
+  <span>设计问卷</span><span>发送问卷</span><span class="on">分析 &amp; 下载</span><span>设置</span>
+</div>
+
+<main>
+  <div class="crumb">我的问卷 <em>/ 大学生咖啡消费偏好调查</em></div>
+
+  <div class="titlerow">
+    <h1>大学生咖啡消费偏好调查</h1>
+    <span class="pill">进行中</span>
+    <span class="meta">创建于 2026-10-12 18:04&nbsp;&nbsp;·&nbsp;&nbsp;共 12 题</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">已回收</div><div class="v">86</div></div>
+    <div class="stat good"><div class="k">有效答卷</div><div class="v">12</div></div>
+    <div class="stat bad"><div class="k">无效答卷</div><div class="v">74</div></div>
+    <div class="stat"><div class="k">回收率</div><div class="v">43%</div></div>
+  </div>
+
+  <div class="body">
+    <div class="card tbl">
+      <div class="hd"><div class="t">答卷列表</div>
+        <div class="f"><span class="sel">全部状态</span><span class="sel">按提交时间</span><span class="sel">导出</span></div>
+      </div>
+      <table>
+        <tr><th style="width:11%">序号</th><th style="width:19%">提交时间</th><th style="width:12%">用时</th>
+            <th style="width:14%">来源</th><th style="width:26%">第 7 题</th><th>状态</th></tr>
+        <tr class="bad"><td class="idn">#0086</td><td>10-14 21:07</td><td>1 分 12 秒</td><td>手机</td>
+            <td class="duo">拍照打卡 · 提神</td><td><span class="tagbad">无效</span></td></tr>
+        <tr><td class="idn">#0085</td><td>10-14 20:51</td><td>2 分 04 秒</td><td>手机</td>
+            <td>拍照打卡</td><td><span class="taggood">有效</span></td></tr>
+        <tr class="bad"><td class="idn">#0084</td><td>10-14 20:33</td><td>0 分 47 秒</td><td>微信</td>
+            <td class="duo">提神 · 习惯</td><td><span class="tagbad">无效</span></td></tr>
+        <tr><td class="idn">#0083</td><td>10-14 20:19</td><td>1 分 38 秒</td><td>手机</td>
+            <td>提神</td><td><span class="taggood">有效</span></td></tr>
+        <tr class="bad"><td class="idn">#0082</td><td>10-14 19:55</td><td>3 分 21 秒</td><td>电脑</td>
+            <td class="duo">拍照打卡 · 提神</td><td><span class="tagbad">无效</span></td></tr>
+        <tr class="bad"><td class="idn">#0081</td><td>10-14 19:40</td><td>1 分 05 秒</td><td>手机</td>
+            <td class="duo">拍照打卡 · 陪别人</td><td><span class="tagbad">无效</span></td></tr>
+        <tr><td class="idn">#0080</td><td>10-14 19:12</td><td>2 分 43 秒</td><td>手机</td>
+            <td>拍照打卡</td><td><span class="taggood">有效</span></td></tr>
+        <tr class="bad"><td class="idn">#0079</td><td>10-14 18:58</td><td>1 分 26 秒</td><td>微信</td>
+            <td class="duo">提神 · 拍照打卡</td><td><span class="tagbad">无效</span></td></tr>
+        <tr><td class="idn">#0078</td><td>10-14 18:44</td><td>2 分 11 秒</td><td>手机</td>
+            <td>提神</td><td><span class="taggood">有效</span></td></tr>
+        <tr class="bad"><td class="idn">#0077</td><td>10-14 18:30</td><td>0 分 52 秒</td><td>手机</td>
+            <td class="duo">拍照打卡 · 提神</td><td><span class="tagbad">无效</span></td></tr>
+        <tr class="bad"><td class="idn">#0076</td><td>10-14 18:12</td><td>1 分 48 秒</td><td>电脑</td>
+            <td class="duo">提神 · 习惯</td><td><span class="tagbad">无效</span></td></tr>
+        <tr><td class="idn">#0075</td><td>10-14 17:56</td><td>2 分 05 秒</td><td>手机</td>
+            <td>拍照打卡</td><td><span class="taggood">有效</span></td></tr>
+      </table>
+      <div class="pager"><span>共 86 条</span><span class="sp"></span>
+        <span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">4</span><span class="pg">…</span>
+        <span>每页 20 条</span>
+      </div>
+    </div>
+
+    <aside class="card chart">
+      <h3>第 7 题<small style="font-weight:400;color:#9aa1ab;font-size:.68rem">&nbsp;· 单选题</small></h3>
+      <div class="q">你买咖啡，主要是为了拍照打卡，还是为了提神？</div>
+
+      <div class="bar"><div class="lb"><span>拍照打卡</span><b>78%</b></div>
+        <div class="track"><div class="fill f1"></div></div></div>
+      <div class="bar"><div class="lb"><span>提神</span><b>22%</b></div>
+        <div class="track"><div class="fill f2"></div></div></div>
+
+      <table class="mini">
+        <tr><th>选项</th><th style="text-align:right">人数</th><th style="text-align:right">占比</th></tr>
+        <tr><td>拍照打卡</td><td style="text-align:right">67</td><td style="text-align:right">78%</td></tr>
+        <tr><td>提神</td><td style="text-align:right">19</td><td style="text-align:right">22%</td></tr>
+        <tr class="sum"><td>合计</td><td style="text-align:right">86</td><td style="text-align:right">100%</td></tr>
+      </table>
+
+      <div class="note">74 份答卷在该题勾选了 2 个选项，系统按第 1 项计入统计。</div>
+
+      <div class="foot"><span>样本：已回收 86 份</span><span>更新于 10-14 21:07</span></div>
+    </aside>
+  </div>
+</main>
+
+</body></html>
